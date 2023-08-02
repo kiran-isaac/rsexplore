@@ -4,22 +4,19 @@ import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-
-  console.log("App component mounted"); // Add this line
+  const [cwd, setCwd] = useState("");
 
   useEffect(() => {
-    async function fetchGreetMsg() {
-      const response : string = await invoke("test", { name: "World" });
-      setGreetMsg(response);
+    async function walkCwd() {
+      invoke("walk_from", { drivePath : await invoke("get_cwd") });
     }
-    fetchGreetMsg();
+    walkCwd();
   }, []);
 
   return (
     <div className="container">
       <h1>RS Explore</h1>
-      <p>{greetMsg}</p>
+      <p>{cwd}</p>
     </div>
   );
 }
