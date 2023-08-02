@@ -1,10 +1,10 @@
 {
   "build": {
-    "beforeDevCommand": "npm run dev",
+    "beforeDevCommand": "npm run dev --debug",
     "beforeBuildCommand": "npm run build",
     "devPath": "http://localhost:1420",
     "distDir": "../dist",
-    "withGlobalTauri": false
+    "withGlobalTauri": false  
   },
   "package": {
     "productName": "rsexplore",
@@ -21,7 +21,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "uk.co.kiransturt.rsexplore",
+      "identifier": "uk.kiransturt.rsexplore",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",
@@ -41,6 +41,13 @@
         "width": 800,
         "height": 600
       }
-    ]
+    ],
+    "cli": {
+      "description": "uhh",
+      "longDescription": "",
+      "beforeHelp": "",
+      "afterHelp": "",
+      "args": []
+    }
   }
 }
