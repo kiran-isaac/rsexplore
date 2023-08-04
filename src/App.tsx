@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import "./App.scss";
+import "./styles/App.scss";
 import { Dir } from "./Dir";
 
 function App() {
@@ -9,7 +9,9 @@ function App() {
 
   useEffect(() => {
     async function walkCwd() {
-        setCwd(await invoke("get_cwd"));
+        let cwd : string = await invoke("get_cwd");
+        console.log(cwd);
+        setCwd(cwd);
     }
     walkCwd();
   }, []);
@@ -17,7 +19,7 @@ function App() {
   return (
     <div className="container">
       <h1>RS Explore</h1>
-      <Dir CWDName={cwd} />
+      <Dir cwd={cwd} setCwd={setCwd} />
     </div>
   );
 }

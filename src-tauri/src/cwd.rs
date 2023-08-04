@@ -1,21 +1,13 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{json};
 use std::fs;
 use std::path::PathBuf;
-
-
-#[derive(Serialize, Deserialize)]
-enum FileTypes {
-    File,
-    Directory,
-}
 
 #[derive(Serialize, Deserialize)]
 struct FileMetadata {
     name: String,
-    path: String,
     size: u64,
-    file_type: FileTypes,
+    is_dir: bool,
 }
 
 #[tauri::command]
@@ -38,11 +30,7 @@ pub fn get_dir_contents(dir: String) -> Result<String, String> {
             Ok(entry) => {
                 let path = entry.path();
                 let metadata = entry.metadata().map_err(|e| e.to_string())?;
-                let file_type = if metadata.is_dir() {
-                    FileTypes::Directory
-                } else {
-                    FileTypes::File
-                };
+                let file_type = metadata.is_dir();
                 let file_metadata = FileMetadata {
                     name: path
                         .file_name()
@@ -50,12 +38,8 @@ pub fn get_dir_contents(dir: String) -> Result<String, String> {
                         .to_str()
                         .unwrap_or_else(|| "Invalid Unicode in path")
                         .to_string(),
-                    path: path
-                        .to_str()
-                        .unwrap_or_else(|| "Invalid Unicode in path")
-                        .to_string(),
                     size: metadata.len(),
-                    file_type,
+                    is_dir: file_type,
                 };
                 dir_contents.push(file_metadata);
             }
