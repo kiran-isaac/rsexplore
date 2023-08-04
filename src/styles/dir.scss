@@ -2,8 +2,7 @@ div#key {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     h4 {
-        display: inline-block;
-        margin: 0;
+
     }
 
 }
@@ -19,13 +18,23 @@ div#itemList {
             grid-template-columns: 1fr 1fr 1fr;
             p {
                 display: inline-block;
-                width: 100px;
                 margin: 0;
             }
+        }
+
+        li:hover {
+            background-color: rgba(0, 162, 255, 0.411);
+            color: white;
+        }
+
+        li.selected {
+            background-color: rgba(0, 162, 255, 0.411);
+            color: white;
         }
     }
 
     ul#dirs {
         color: rgb(0, 162, 255);
+        margin-bottom: 10px;
     }
 }

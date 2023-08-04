@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { Bar } from "./Bar";
 
@@ -27,8 +27,59 @@ function bytesToReadable(bytes: number): string {
     }
 }
 
+interface RowProps {
+    file : File;
+    cwd : string;
+    setCwd : React.Dispatch<React.SetStateAction<string>>;
+    selected : string;
+    setSelected: React.Dispatch<React.SetStateAction<string>>;
+}
+
+const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) => {
+    const nodeRef = useRef(null);
+
+    function getRowInner() {
+        if (!file.is_dir) {
+            return (file.name != selected ?
+                <li className="item" key={file.name} onClick={() => setSelected(file.name)} onDoubleClick={() => invoke("open_file", {cwd, name : file.name})}>
+                    <p id="name">{file.name}</p>
+                    <p id="size">{bytesToReadable(file.size)}</p>
+                </li> : 
+                <li className="item selected" key={file.name}>
+                    <p id="name">{file.name}</p>
+                    <p id="size">{bytesToReadable(file.size)}</p>
+                </li>
+            );
+        } else {
+            return file.name != selected ? 
+                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
+                        <p id="name">{file.name}</p>
+                    </li> :
+                    <li className="item selected" key={file.name} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
+                        <p id="name">{file.name}</p>
+                    </li>
+        }
+    }
+
+    function handleClickOutside(event: MouseEvent) {
+        if (nodeRef.current && !nodeRef.current.contains(event.target)) {
+            setSelected("");
+        }
+    }
+
+    useEffect(() => {
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
+    return <div ref={nodeRef}>{getRowInner()}</div>;
+}
+
 export const Dir: React.FC<DirProps> = ({ cwd, setCwd }) => {
     const [dirDisplay, setDirDisplay] = useState(() => <div></div>);
+    const [selected, setSelected] = useState("");
 
     useEffect(() => {
         async function walkCwd() {
@@ -36,20 +87,15 @@ export const Dir: React.FC<DirProps> = ({ cwd, setCwd }) => {
 
             const files = dir.filter(item => !item.is_dir);
             const dirs = dir.filter(item => item.is_dir);
-          
-            const fileElements = files.map(item => <li key={item.name} onDoubleClick={() => invoke("open_file", {cwd: cwd, name:  item.name})}>
-                    <p id="name">{item.name}</p>
-                    <p id="size">{bytesToReadable(item.size)}</p>
-                </li>);
-            const dirElements = dirs.map(item => <li key={item.name} onDoubleClick={() => setCwd(cwd + "\\" + item.name)}>
-                <p id="name">{item.name}</p>
-                </li>);
-          
+
+            const dirElements = dirs.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected}/>);
+            const fileElements = files.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected}/>);
+
             setDirDisplay(
-              <div id="itemList">
-                <ul id="dirs">{dirElements}</ul>
-                <ul id="files">{fileElements}</ul>
-              </div>
+                <div id="itemList">
+                    <ul id="dirs">{dirElements}</ul>
+                    <ul id="files">{fileElements}</ul>
+                </div>
             );
         }
         walkCwd();
