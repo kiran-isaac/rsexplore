@@ -15,19 +15,21 @@ type Path = Vec<String>;
 
 #[tauri::command]
 pub fn get_cwd() -> Result<Path, String> {
-    // get the current working directory as a Path
-    let path : Path = std::env::current_dir().map_err(|e| e.to_string())?
-        .to_str()
-        .unwrap_or_else(|| "Invalid Unicode in path")
-        .to_string()
-        .split(std::path::MAIN_SEPARATOR)
-        .map(|s| s.to_string()).collect();
+    // // get the current working directory as a Path
+    // let path : Path = std::env::current_dir().map_err(|e| e.to_string())?
+    //     .to_str()
+    //     .unwrap_or_else(|| "Invalid Unicode in path")
+    //     .to_string()
+    //     .split(std::path::MAIN_SEPARATOR)
+    //     .map(|s| s.to_string()).collect();
 
-    // add a leading slash
-    let mut cwd_mut : Path = vec![std::path::MAIN_SEPARATOR.to_string()];
-    cwd_mut.extend(path);
+    // // add a leading slash
+    // let mut cwd_mut : Path = vec![std::path::MAIN_SEPARATOR.to_string()];
+    // cwd_mut.extend(path);
 
-    Ok(cwd_mut)
+    // Ok(cwd_mut)
+
+    Ok(vec!["/".to_string(), "C:/".to_string()])
 }
 
 unsafe fn get_drive_letters() -> Vec<String> {
@@ -36,31 +38,24 @@ unsafe fn get_drive_letters() -> Vec<String> {
     for i in 0..26 {
         if (drives >> i) & 1 == 1 {
             let drive_letter = (b'A' + i as u8) as char;
-            result.push(drive_letter.to_string());
+            result.push(drive_letter.to_string() + ":");
         }
     }
     result
 }
 
 #[tauri::command]
-pub fn get_dir_contents(mut dir: Path) -> Result<String, String> {
-    // let mut string = "".to_string();
-    // for name in dir.clone() {
-    //     string.push_str(name.as_str())
-    // }
-
-    // println!("get_dir_contents: {}", string);
-    
+pub fn get_dir_contents(mut dir: Path) -> Result<String, String> {    
     let drive_mode = dir.len() == 1;
 
     if dir.len() == 0 {
         return Ok("".to_string())
     }
-    
-    // remove the leading slash, added to stop jsonify turning path array into single string
+
     dir.remove(0);
 
     let dir = dir.join(&std::path::MAIN_SEPARATOR.to_string()).to_string();
+
 
     let path = PathBuf::from(dir.clone());
     let mut dir_contents: Vec<FileMetadata> = Vec::new();

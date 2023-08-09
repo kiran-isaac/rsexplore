@@ -42,6 +42,13 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
     const nodeRef = useRef<HTMLDivElement>(null);
 
     function getRowInner() {
+        function switchFolder() {
+            let temp_cwd = [...cwd];
+            temp_cwd.push(file.name); 
+            console.log("switching : ", temp_cwd);  
+            setCwd(temp_cwd)
+        }
+        
         if (!file.is_dir) {
             return (file.name != selected ?
                 <li className="item" key={file.name} onClick={() => setSelected(file.name)} onDoubleClick={() => invokeAndLog("open_file", {cwd, name : file.name})}>
@@ -55,10 +62,10 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
             );
         } else {
             return file.name != selected ? 
-                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={() => {let temp_cwd = [...cwd];console.log("switching : ", cwd);  temp_cwd.push(file.name); setCwd(temp_cwd)}}>
+                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={switchFolder}>
                         <p id="name">{file.name}</p>
                     </li> :
-                    <li className="item selected" key={file.name} onDoubleClick={() => {let temp_cwd = [...cwd]; temp_cwd.push(file.name); console.log("switching : ", cwd); setCwd(temp_cwd)}}>
+                    <li className="item selected" key={file.name} onDoubleClick={switchFolder}>
                         <p id="name">{file.name}</p>
                     </li>
         }
