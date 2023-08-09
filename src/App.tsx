@@ -1,27 +1,30 @@
 import { useState, useEffect } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 
 import "./styles/App.scss";
 import { Dir } from "./Dir";
+import { invoke } from "@tauri-apps/api";
+
+type Path = string[];
+
+async function getCwd() {
+    return await invoke("get_cwd");
+}
 
 function App() {
-  const [cwd, setCwd] = useState("");
+    const [cwd, setCwd] = useState<Path>([]);
 
-  useEffect(() => {
-    async function walkCwd() {
-        let cwd : string = await invoke("get_cwd");
-        console.log(cwd);
-        setCwd(cwd);
-    }
-    walkCwd();
-  }, []);
+    useEffect(() => {
+        async function fetchCwd() {
+            setCwd(await getCwd() as Path);
+        }
+        fetchCwd();
+    }, []);
 
-  return (
-    <div className="container">
-      <h1>RS Explore</h1>
-      <Dir cwd={cwd} setCwd={setCwd} />
-    </div>
-  );
+    return (
+        <div className="container">
+            <Dir cwd={cwd} setCwd={setCwd} />
+        </div>
+    );
 }
 
 export default App;

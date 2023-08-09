@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 import { Bar } from "./Bar";
 
+import { invokeAndLog } from "./invokeAndLog";
 import "./styles/Dir.scss";
+import { invoke } from "@tauri-apps/api";
+
+type Path = string[];
 
 interface DirProps {
-    cwd: string;
-    setCwd: React.Dispatch<React.SetStateAction<string>>;
+    cwd: Path;
+    setCwd: React.Dispatch<React.SetStateAction<Path>>;
 }
 
 interface File {
@@ -29,19 +32,19 @@ function bytesToReadable(bytes: number): string {
 
 interface RowProps {
     file : File;
-    cwd : string;
-    setCwd : React.Dispatch<React.SetStateAction<string>>;
+    cwd : Path;
+    setCwd : React.Dispatch<React.SetStateAction<Path>>;
     selected : string;
     setSelected: React.Dispatch<React.SetStateAction<string>>;
 }
 
 const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) => {
-    const nodeRef = useRef(null);
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     function getRowInner() {
         if (!file.is_dir) {
             return (file.name != selected ?
-                <li className="item" key={file.name} onClick={() => setSelected(file.name)} onDoubleClick={() => invoke("open_file", {cwd, name : file.name})}>
+                <li className="item" key={file.name} onClick={() => setSelected(file.name)} onDoubleClick={() => invokeAndLog("open_file", {cwd, name : file.name})}>
                     <p id="name">{file.name}</p>
                     <p id="size">{bytesToReadable(file.size)}</p>
                 </li> : 
@@ -52,17 +55,17 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
             );
         } else {
             return file.name != selected ? 
-                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
+                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={() => {let temp_cwd = [...cwd];console.log("switching : ", cwd);  temp_cwd.push(file.name); setCwd(temp_cwd)}}>
                         <p id="name">{file.name}</p>
                     </li> :
-                    <li className="item selected" key={file.name} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
+                    <li className="item selected" key={file.name} onDoubleClick={() => {let temp_cwd = [...cwd]; temp_cwd.push(file.name); console.log("switching : ", cwd); setCwd(temp_cwd)}}>
                         <p id="name">{file.name}</p>
                     </li>
         }
     }
 
     function handleClickOutside(event: MouseEvent) {
-        if (nodeRef.current && !nodeRef.current.contains(event.target)) {
+        if (nodeRef.current && !nodeRef.current.contains(event.target as Node)) {
             setSelected("");
         }
     }
@@ -104,11 +107,6 @@ export const Dir: React.FC<DirProps> = ({ cwd, setCwd }) => {
     return (
         <div className="dir">
             <Bar cwd={cwd} setCwd={setCwd} />
-            <div id="key">
-                <h4>Name</h4>
-                <h4>Size</h4>
-            </div>
-            <hr></hr>
             {dirDisplay}
         </div>
     );

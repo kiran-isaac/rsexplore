@@ -1,6 +1,3 @@
-use serde::{Deserialize, Serialize};
-use serde_json::{json};
-use std::fs;
 use std::path::PathBuf;
 use opener::open;
 
