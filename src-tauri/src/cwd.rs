@@ -15,21 +15,19 @@ type Path = Vec<String>;
 
 #[tauri::command]
 pub fn get_cwd() -> Result<Path, String> {
-    // // get the current working directory as a Path
-    // let path : Path = std::env::current_dir().map_err(|e| e.to_string())?
-    //     .to_str()
-    //     .unwrap_or_else(|| "Invalid Unicode in path")
-    //     .to_string()
-    //     .split(std::path::MAIN_SEPARATOR)
-    //     .map(|s| s.to_string()).collect();
+    // get the current working directory as a Path
+    let path : Path = std::env::current_dir().map_err(|e| e.to_string())?
+        .to_str()
+        .unwrap_or_else(|| "Invalid Unicode in path")
+        .to_string()
+        .split(std::path::MAIN_SEPARATOR)
+        .map(|s| s.to_string()).collect();
 
-    // // add a leading slash
-    // let mut cwd_mut : Path = vec![std::path::MAIN_SEPARATOR.to_string()];
-    // cwd_mut.extend(path);
+    // add a leading slash
+    let mut cwd_mut : Path = vec![std::path::MAIN_SEPARATOR.to_string()];
+    cwd_mut.extend(path);
 
-    // Ok(cwd_mut)
-
-    Ok(vec!["/".to_string(), "C:/".to_string()])
+    Ok(cwd_mut)
 }
 
 unsafe fn get_drive_letters() -> Vec<String> {
