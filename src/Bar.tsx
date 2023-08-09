@@ -10,7 +10,6 @@ interface BarProps {
 }
 
 function goBack(cwd: Path, setCwd: React.Dispatch<React.SetStateAction<Path>>) {
-    if (cwd.length <= 1) return;
     // copy the array and remove the last element
     let split = [...cwd];
     split.pop();
@@ -21,7 +20,7 @@ function goBack(cwd: Path, setCwd: React.Dispatch<React.SetStateAction<Path>>) {
 }
 
 const BackButton: React.FC<BarProps> = ({ cwd, setCwd }) => {
-    return <h2 className="clickable" id="back" onClick = {() => goBack(cwd, setCwd)}>&#8647;</h2>
+    return cwd.length >= 2 ? <h2 className="clickable" id="back" onClick = {() => goBack(cwd, setCwd)}>&#8647;</h2> : <h2 id="back">&#8647;</h2>; 
 }
 
 const SelectorBar : React.FC<BarProps> = ({ cwd, setCwd }) => {

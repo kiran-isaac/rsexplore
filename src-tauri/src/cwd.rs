@@ -38,7 +38,7 @@ unsafe fn get_drive_letters() -> Vec<String> {
     for i in 0..26 {
         if (drives >> i) & 1 == 1 {
             let drive_letter = (b'A' + i as u8) as char;
-            result.push(drive_letter.to_string() + ":");
+            result.push(drive_letter.to_string() + ":/");
         }
     }
     result
