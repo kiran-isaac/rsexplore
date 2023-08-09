@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Bar } from "./Bar";
 
 import { invokeAndLog } from "./invokeAndLog";
-import "./styles/Dir.scss";
+import "./styles/dir.scss";
 import { invoke } from "@tauri-apps/api";
 
 type Path = string[];

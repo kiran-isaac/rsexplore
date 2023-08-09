@@ -2,6 +2,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::fs;
 use std::path::PathBuf;
+
+// only if windows
+#[cfg(target_os = "windows")]
 use windows::Win32::Storage::FileSystem::GetLogicalDrives;
 
 #[derive(Serialize, Deserialize)]
@@ -32,6 +35,7 @@ pub fn get_cwd() -> Result<Path, String> {
     Ok(cwd_mut)
 }
 
+#[cfg(target_os = "windows")]
 unsafe fn get_drive_letters() -> Vec<String> {
     let drives = GetLogicalDrives();
     let mut result = Vec::new();
@@ -52,10 +56,6 @@ pub fn get_dir_contents(mut dir: Path) -> Result<String, String> {
         return Ok("".to_string())
     }
 
-    if std::env::consts::OS == "linux" {
-        drive_mode = false;
-    }
-
     dir.remove(0);
 
     let dir = dir.join(&std::path::MAIN_SEPARATOR.to_string()).to_string();
@@ -63,17 +63,19 @@ pub fn get_dir_contents(mut dir: Path) -> Result<String, String> {
     let path = PathBuf::from(dir.clone());
     let mut dir_contents: Vec<FileMetadata> = Vec::new();
 
-    if drive_mode {
-        // If dir is empty, use the drives
-        let drives = unsafe { get_drive_letters() };
+    if drive_mode && cfg!(target_os = "windows") {
+        #[cfg(target_os = "windows")] 
+        {
+            let drives = unsafe { get_drive_letters() };
 
-        for drive in drives {
-            let file_metadata = FileMetadata {
-                name: drive,
-                size: 0,
-                is_dir: true,
-            };
-            dir_contents.push(file_metadata);
+            for drive in drives {
+                let file_metadata = FileMetadata {
+                    name: drive,
+                    size: 0,
+                    is_dir: true,
+                };
+                dir_contents.push(file_metadata);
+            }
         }
     } else {
         for entry in fs::read_dir(path).map_err(|e| e.to_string())? {

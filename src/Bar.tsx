@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import "./styles/Bar.scss";
+import "./styles/bar.scss";
 
 
 type Path = string[];
