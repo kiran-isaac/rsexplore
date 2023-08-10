@@ -50,7 +50,7 @@ unsafe fn get_drive_letters() -> Vec<String> {
 
 #[tauri::command]
 pub fn get_dir_contents(mut dir: Path) -> Result<String, String> {    
-    let mut drive_mode = dir.len() == 1;
+    let drive_mode = dir.len() == 1;
 
     if dir.len() == 0 {
         return Ok("".to_string())
