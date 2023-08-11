@@ -1,23 +1,15 @@
-import { ReactElement, useCallback, useState } from "react";
+import { ReactElement } from "react";
 import "./styles/bar.scss";
 import { ItemInDir } from "./Dir";
-import { SortMode, sort } from "./sort";
+import { SortMode } from "./Bar/sort/sort";
+import { SortButton } from "./Bar/sort/SortButton";
 
 type Path = string[];
 
-interface BarProps {
+const BackButton: React.FC<{
     cwd: Path;
     setCwd: React.Dispatch<React.SetStateAction<Path>>;
-    dir: ItemInDir[];
-    setDir: React.Dispatch<React.SetStateAction<ItemInDir[]>>;
-}
-
-interface BackButtonProps {
-    cwd: Path;
-    setCwd: React.Dispatch<React.SetStateAction<Path>>;
-}
-
-const BackButton: React.FC<BackButtonProps> = ({ cwd, setCwd }) => {
+}> = ({ cwd, setCwd }) => {
     function goBack(cwd: Path, setCwd: React.Dispatch<React.SetStateAction<Path>>) {
         // copy the array and remove the last element
         let split = [...cwd];
@@ -31,7 +23,10 @@ const BackButton: React.FC<BackButtonProps> = ({ cwd, setCwd }) => {
     return cwd.length >= 2 ? <h2 className="clickable" id="back" onClick = {() => goBack(cwd, setCwd)}>&#8647;</h2> : <h2 id="back">&#8647;</h2>; 
 }
 
-const SelectorBar : React.FC<BackButtonProps> = ({ cwd, setCwd }) => {
+const SelectorBar : React.FC<{
+    cwd: Path;
+    setCwd: React.Dispatch<React.SetStateAction<Path>>;
+}> = ({ cwd, setCwd }) => {
     let options : ReactElement[] = []
 
     for (let i = 0; i < cwd.length; i++) {
@@ -44,52 +39,12 @@ const SelectorBar : React.FC<BackButtonProps> = ({ cwd, setCwd }) => {
     </ul></div>
 }
 
-interface SortButtonProps {
+export const Bar: React.FC<{
+    cwd: Path;
+    setCwd: React.Dispatch<React.SetStateAction<Path>>;
     dir: ItemInDir[];
-    setDir: React.Dispatch<React.SetStateAction<ItemInDir[]>>;
-    sortType: SortMode;
-}
-
-const SortButton: React.FC<SortButtonProps> = ({ dir, setDir, sortType }) => {
-    enum SortButtonStateOptions {
-        None,
-        Ascending, 
-        Descending
-    }
-
-    function GetButtonChar() {
-        switch (currentState) {
-            case SortButtonStateOptions.None:
-                return "-";
-            case SortButtonStateOptions.Ascending:
-                return "▲";
-            case SortButtonStateOptions.Descending:
-                return "▼";
-        }
-    }
-    
-    const [currentState, setCurrentState] = useState<SortButtonStateOptions>(0);
-    
-    const SortButtonPress = () => {
-        switch (currentState) {
-            case SortButtonStateOptions.None:
-                setCurrentState(SortButtonStateOptions.Ascending);
-                break;
-            case SortButtonStateOptions.Ascending:
-                setCurrentState(SortButtonStateOptions.Descending);
-                break;
-            case SortButtonStateOptions.Descending:
-                setCurrentState(SortButtonStateOptions.None);
-                break;
-        }
-
-        setDir([...dir].reverse());
-    };
-
-    return <button onClick={SortButtonPress}>{GetButtonChar()}</button>;
-}
-
-export const Bar: React.FC<BarProps> = ({ cwd, setCwd, dir, setDir }) => {
+    setDir: (newDir: ItemInDir[]) => void;
+}> = ({ cwd, setCwd, dir, setDir }) => {
     return (
         <div id="bar">
             <h1>RS Explore</h1>

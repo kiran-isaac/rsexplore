@@ -3,6 +3,7 @@ import { Bar } from "./Bar";
 
 import "./styles/dir.scss";
 import { invoke } from "@tauri-apps/api";
+import React from "react";
 
 type Path = string[];
 
@@ -32,9 +33,9 @@ function bytesToReadable(bytes: number): string {
 interface RowProps {
     file: ItemInDir;
     cwd: Path;
-    setCwd: React.Dispatch<React.SetStateAction<Path>>;
+    setCwd: (newCwd: Path) => void;
     selected: string;
-    setSelected: React.Dispatch<React.SetStateAction<string>>;
+    setSelected: (newSelected: string) => void;
 }
 
 const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) => {
@@ -91,30 +92,40 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
     return <div ref={nodeRef}>{getRowInner()}</div>;
 }
 
-export const Dir: React.FC<DirProps> = ({ cwd, setCwd }) => {
-    const [dir, setDir] = useState<ItemInDir[]>([]); // [name, size, is_dir]
-    const [selected, setSelected] = useState("");
+type DirState = {
+    dir: ItemInDir[];
+    selected: string;
+}
 
-    useEffect(() => {
-        async function walkCwd() {
-            setDir(JSON.parse(await invoke("get_dir_contents", { dir: cwd })));
-        }
-        walkCwd();
-    });
+export class Dir extends React.Component<DirProps, DirState> {
+    props: DirProps;
 
-    const files = dir.filter(item => !item.is_dir);
-    const dirs = dir.filter(item => item.is_dir);
+    constructor(props: DirProps) {
+        super(props);
+        this.props = props;
+        this.state = { dir: [], selected: "" };
+        this.getDirContents();
+    }
 
-    const dirElements = dirs.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected} />);
-    const fileElements = files.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected} />);
+    async getDirContents() {
+        this.setState({dir : JSON.parse(await invoke("get_dir_contents", { dir: this.props.cwd }))});
+    }
 
-    return (
-        <div className="dir">
-            <div id="itemList">
-                <Bar {...{ cwd, setCwd, dir, setDir }} />
-                <ul id="dirs">{dirElements}</ul>
-                <ul id="files">{fileElements}</ul>
+    render() {
+        const files = this.state.dir.filter(item => !item.is_dir);
+        const dirs = this.state.dir.filter(item => item.is_dir);
+
+        const dirElements = dirs.map(item => <Row file={item} cwd={this.props.cwd} setCwd={this.props.setCwd} selected={this.state.selected} setSelected={(newSelected: string) => { this.setState({ selected: newSelected }); }} />);
+        const fileElements = files.map(item => <Row file={item} cwd={this.props.cwd} setCwd={this.props.setCwd} selected={this.state.selected} setSelected={(newSelected: string) => { this.setState({ selected: newSelected }); }} />);
+
+        return (
+            <div className="dir">
+                <div id="itemList">
+                    <Bar cwd={this.props.cwd} setCwd={this.props.setCwd} dir={this.state.dir} setDir={(newDir) => { this.setState({ dir: newDir }) }} />
+                    <ul id="dirs">{dirElements}</ul>
+                    <ul id="files">{fileElements}</ul>
+                </div>
             </div>
-        </div>
-    );
-};
+        );
+    }
+}

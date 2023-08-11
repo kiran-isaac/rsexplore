@@ -1,11 +1,11 @@
-import { ItemInDir } from "./Dir";
+import { ItemInDir } from "../../Dir";
 
 export enum SortMode {
     Size,
     Name,
 }
 
-export function sort(mode: SortMode, ascending: boolean, files: ItemInDir[]) {
+export function sort(mode: SortMode, ascending: boolean, files: ItemInDir[]) : ItemInDir[] {
     if (mode == SortMode.Size) {
         files.sort((a, b) => {
             if (ascending) {
@@ -22,5 +22,8 @@ export function sort(mode: SortMode, ascending: boolean, files: ItemInDir[]) {
                 return b.name.localeCompare(a.name);
             }
         });
+    } else {
+        throw new Error("Unknown sort mode");
     }
+    return files;
 }
