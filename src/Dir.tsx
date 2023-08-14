@@ -22,8 +22,10 @@ function bytesToReadable(bytes: number): string {
         return (bytes / 1024).toFixed(2) + " KB";
     } else if (bytes < 1073741824) {
         return (bytes / 1048576).toFixed(2) + " MB";
-    } else {
+    } else if (bytes < 1099511627776) {
         return (bytes / 1073741824).toFixed(2) + " GB";
+    } else {
+        return (bytes / 1099511627776).toFixed(2) + " TB";
     }
 }
 
@@ -36,7 +38,7 @@ interface RowProps {
 }
 
 const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) => {
-    const nodeRef = useRef(null);
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     function getRowInner() {
         if (!file.is_dir) {
@@ -62,7 +64,7 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
     }
 
     function handleClickOutside(event: MouseEvent) {
-        if (nodeRef.current && !nodeRef.current.contains(event.target)) {
+        if (nodeRef.current && !nodeRef.current.contains(event.target as Node)) {
             setSelected("");
         }
     }
