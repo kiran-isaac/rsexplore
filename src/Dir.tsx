@@ -1,15 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
 import { Bar } from "./Bar";
 
-import "./styles/Dir.scss";
+import "./styles/dir.scss";
+import { invoke } from "@tauri-apps/api";
+import React from "react";
+
+type Path = string[];
 
 interface DirProps {
-    cwd: string;
-    setCwd: React.Dispatch<React.SetStateAction<string>>;
+    cwd: Path;
+    setCwd: React.Dispatch<React.SetStateAction<Path>>;
 }
 
-interface File {
+export interface ItemInDir {
     name: string;
     size: number;
     is_dir: boolean;
@@ -30,36 +33,48 @@ function bytesToReadable(bytes: number): string {
 }
 
 interface RowProps {
-    file : File;
-    cwd : string;
-    setCwd : React.Dispatch<React.SetStateAction<string>>;
-    selected : string;
-    setSelected: React.Dispatch<React.SetStateAction<string>>;
+    file: ItemInDir;
+    cwd: Path;
+    setCwd: (newCwd: Path) => void;
+    selected: string;
+    setSelected: (newSelected: string) => void;
 }
 
 const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) => {
     const nodeRef = useRef<HTMLDivElement>(null);
 
     function getRowInner() {
+        function switchFolder() {
+            let temp_cwd = [...cwd];
+            temp_cwd.push(file.name);
+            console.log("switching : ", temp_cwd);
+            setCwd(temp_cwd)
+        }
+
+        function openFile() {
+            console.log("opening file : ", file.name);
+            invoke("open_file", { cwd, name: file.name });
+        }
+
         if (!file.is_dir) {
             return (file.name != selected ?
-                <li className="item" key={file.name} onClick={() => setSelected(file.name)} onDoubleClick={() => invoke("open_file", {cwd, name : file.name})}>
+                <li className="item" key={file.name} onClick={() => setSelected(file.name)} >
                     <p id="name">{file.name}</p>
                     <p id="size">{bytesToReadable(file.size)}</p>
-                </li> : 
-                <li className="item selected" key={file.name}>
+                </li> :
+                <li className="item selected" key={file.name} onDoubleClick={openFile}>
                     <p id="name">{file.name}</p>
                     <p id="size">{bytesToReadable(file.size)}</p>
                 </li>
             );
         } else {
-            return file.name != selected ? 
-                    <li className="item" key={file.name} onClick={() => {setSelected(file.name)}} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
-                        <p id="name">{file.name}</p>
-                    </li> :
-                    <li className="item selected" key={file.name} onDoubleClick={() => setCwd(cwd + "\\" + file.name)}>
-                        <p id="name">{file.name}</p>
-                    </li>
+            return file.name != selected ?
+                <li className="item" key={file.name} onClick={() => { setSelected(file.name) }} onDoubleClick={switchFolder}>
+                    <p id="name">{file.name}</p>
+                </li> :
+                <li className="item selected" key={file.name} onDoubleClick={switchFolder}>
+                    <p id="name">{file.name}</p>
+                </li>
         }
     }
 
@@ -79,39 +94,40 @@ const Row: React.FC<RowProps> = ({ file, cwd, setCwd, selected, setSelected }) =
     return <div ref={nodeRef}>{getRowInner()}</div>;
 }
 
-export const Dir: React.FC<DirProps> = ({ cwd, setCwd }) => {
-    const [dirDisplay, setDirDisplay] = useState(() => <div></div>);
-    const [selected, setSelected] = useState("");
+type DirState = {
+    dir: ItemInDir[];
+    selected: string;
+}
 
-    useEffect(() => {
-        async function walkCwd() {
-            const dir = JSON.parse(await invoke("get_dir_contents", { dir: cwd })) as File[];
+export class Dir extends React.Component<DirProps, DirState> {
+    props: DirProps;
 
-            const files = dir.filter(item => !item.is_dir);
-            const dirs = dir.filter(item => item.is_dir);
+    constructor(props: DirProps) {
+        super(props);
+        this.props = props;
+        this.state = { dir: [], selected: "" };
+        this.getDirContents();
+    }
 
-            const dirElements = dirs.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected}/>);
-            const fileElements = files.map(item => <Row file={item} cwd={cwd} setCwd={setCwd} selected={selected} setSelected={setSelected}/>);
+    async getDirContents() {
+        this.setState({dir : JSON.parse(await invoke("get_dir_contents", { dir: this.props.cwd }))});
+    }
 
-            setDirDisplay(
+    render() {
+        const files = this.state.dir.filter(item => !item.is_dir);
+        const dirs = this.state.dir.filter(item => item.is_dir);
+
+        const dirElements = dirs.map(item => <Row file={item} cwd={this.props.cwd} setCwd={this.props.setCwd} selected={this.state.selected} setSelected={(newSelected: string) => { this.setState({ selected: newSelected }); }} />);
+        const fileElements = files.map(item => <Row file={item} cwd={this.props.cwd} setCwd={this.props.setCwd} selected={this.state.selected} setSelected={(newSelected: string) => { this.setState({ selected: newSelected }); }} />);
+
+        return (
+            <div className="dir">
                 <div id="itemList">
+                    <Bar cwd={this.props.cwd} setCwd={this.props.setCwd} dir={this.state.dir} setDir={(newDir) => { this.setState({ dir: newDir }) }} />
                     <ul id="dirs">{dirElements}</ul>
                     <ul id="files">{fileElements}</ul>
                 </div>
-            );
-        }
-        walkCwd();
-    });
-
-    return (
-        <div className="dir">
-            <Bar cwd={cwd} setCwd={setCwd} />
-            <div id="key">
-                <h4>Name</h4>
-                <h4>Size</h4>
             </div>
-            <hr></hr>
-            {dirDisplay}
-        </div>
-    );
-};
+        );
+    }
+}
