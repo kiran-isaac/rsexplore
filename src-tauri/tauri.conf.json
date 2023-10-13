@@ -25,10 +25,7 @@
       "icon": [
         "icons/icon.ico",
         "icons/32x32.png"
-      ],
-        "resources": [
-            "../src/public"
-        ]
+      ]
     },
     "security": {
       "csp": null
