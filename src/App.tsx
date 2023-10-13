@@ -7,7 +7,8 @@ import { invoke } from "@tauri-apps/api";
 type Path = string[];
 
 async function getCwd() {
-    return await invoke("get_cwd");
+    let cwd = await invoke("get_cwd");
+    return cwd;
 }
 
 function App() {

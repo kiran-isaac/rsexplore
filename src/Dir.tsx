@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Bar } from "./Bar";
 
 import "./styles/dir.scss";
